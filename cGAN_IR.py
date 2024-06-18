@@ -266,8 +266,17 @@ d_model = define_discriminator(input_shape)
 g_model = define_generator(input_shape)
 gan_model = define_gan(g_model, d_model)
 
-Xtrain = np.random.random((10, 3, 110240, 1))
-Ytrain = np.random.random((10, 3, 110240, 1))
+
+#################################################
+#################################################
+
+path1 = "/XtrainCM3.npy"
+path2 = "/YtrainCM3.npy"
+
+Xtrain = np.load(path1)
+Ytrain = np.load(path2) #np.random.random((10, 3, 110240, 1))
 dataset = np.array([Xtrain, Ytrain])
 
 train(g_model, d_model, gan_model, dataset, n_epochs=2, n_batch=2)
+
+print("Model trained successfully!")
