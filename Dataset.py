@@ -53,7 +53,7 @@ def RoomImpulseResponse(source_signals, room_dim, delay_time):
 
 
 
-path = ""
+path = "/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/LM/Ytrain.npy"
 
 Ytrain = np.load(path)
 print('Ytrain Shape:', Ytrain.shape)
@@ -80,5 +80,5 @@ for si in tqdm(Ytrain[:, :, :]):
     print('Room dim:', room_dim)
 
 
-np.save('XtrainCM3.npy', rir_songs)
-np.save('YtrainCM3.npy', Ytrain)
+np.save('/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/CM/XtrainCM3.npy', rir_songs)
+np.save('/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/CM/YtrainCM3.npy', Ytrain)

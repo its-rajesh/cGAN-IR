@@ -270,8 +270,8 @@ gan_model = define_gan(g_model, d_model)
 #################################################
 #################################################
 
-path1 = "/XtrainCM3.npy"
-path2 = "/YtrainCM3.npy"
+path1 = "/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/CM/XtrainCM3.npy"
+path2 = "/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/CM/YtrainCM3.npy"
 
 Xtrain = np.load(path1)
 Ytrain = np.load(path2) #np.random.random((10, 3, 110240, 1))
