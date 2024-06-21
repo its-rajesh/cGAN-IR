@@ -49,7 +49,7 @@ def encoder(input_shape):
     x = Conv2D(16, (3, 3), padding = "same", dilation_rate=1)(input_shape)
     x = Conv2D(16, (3, 3), padding = "same", dilation_rate=1)(x)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = MaxPooling2D((1, 2))(x)
     ds1 = Dropout(0.1)(x)
 
@@ -57,7 +57,7 @@ def encoder(input_shape):
     x = Conv2D(32, (3, 3), padding = "same", dilation_rate=2)(ds1)
     x = Conv2D(32, (3, 3), padding = "same", dilation_rate=2)(x)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = MaxPooling2D((1, 2))(x)
     ds2 = Dropout(0.1)(x)
 
@@ -65,7 +65,7 @@ def encoder(input_shape):
     x = Conv2D(64, (3, 3), padding = "same", dilation_rate=4)(ds2)
     x = Conv2D(64, (3, 3), padding = "same", dilation_rate=4)(x)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = MaxPooling2D((1, 2))(x)
     ds3 = Dropout(0.1)(x)
 
@@ -73,7 +73,7 @@ def encoder(input_shape):
     x = Conv2D(128, (3, 3), padding = "same", dilation_rate=16)(ds3)
     x = Conv2D(128, (3, 3), padding = "same", dilation_rate=16)(x)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = MaxPooling2D((1, 2))(x)
     ds4 = Dropout(0.1)(x)
 
@@ -84,7 +84,7 @@ def bottleneck(encoder_output):
     x = Conv2D(256, (3, 3), padding = "same")(encoder_output)
     x = Conv2D(256, (3, 3), padding = "same")(x)
     x = BatchNormalization()(x)
-    out = LeakyReLU(negative_slope=0.3)(x)
+    out = LeakyReLU(alpha=0.3)(x)
     
     return out
 
@@ -93,42 +93,42 @@ def decoder(bottleneck_output, ds4, ds3, ds2, ds1):
     #Upsampling Block 4
     x = Conv2DTranspose(128, (3, 3), (1, 1), padding = "same")(bottleneck_output)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = concatenate([x, ds4])
 
     x = Conv2D(128, (3, 3), padding = "same")(x)
     x = Conv2D(128, (3, 3), padding = "same")(x)
-    up4 = LeakyReLU(negative_slope=0.3)(x)
+    up4 = LeakyReLU(alpha=0.3)(x)
 
     #Upsampling Block 3
     x = Conv2DTranspose(64, (3, 3), (1, 2), padding = "same")(up4)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = concatenate([x, ds3])
 
     x = Conv2D(64, (3, 3), padding = "same")(x)
     x = Conv2D(64, (3, 3), padding = "same")(x)
-    up3 = LeakyReLU(negative_slope=0.3)(x)
+    up3 = LeakyReLU(alpha=0.3)(x)
 
     #Upsampling Block 2
     x = Conv2DTranspose(32, (3, 3), (1, 2), padding = "same")(up3)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = concatenate([x, ds2])
 
     x = Conv2D(32, (3, 3), padding = "same")(x)
     x = Conv2D(32, (3, 3), padding = "same")(x)
-    up2 = LeakyReLU(negative_slope=0.3)(x)
+    up2 = LeakyReLU(alpha=0.3)(x)
 
     #Upsampling Block 1
     x = Conv2DTranspose(16, (3, 3), (1, 2), padding = "same")(up2)
     x = BatchNormalization()(x)
-    x = LeakyReLU(negative_slope=0.3)(x)
+    x = LeakyReLU(alpha=0.3)(x)
     x = concatenate([x, ds1])
 
     x = Conv2D(32, (3, 3), padding = "same")(x)
     x = Conv2D(32, (3, 3), padding = "same")(x)
-    up1 = LeakyReLU(negative_slope=0.3)(x)
+    up1 = LeakyReLU(alpha=0.3)(x)
 
     return up1
 
@@ -139,7 +139,7 @@ def define_generator(input_shape):
     decoder_output = decoder(bottleneck_output, ds4, ds3, ds2, ds1)
     
     x = Conv2DTranspose(1, (3, 3), (1, 2), padding="same")(decoder_output)
-    outputs = LeakyReLU(negative_slope=0.3)(x)
+    outputs = LeakyReLU(alpha=0.3)(x)
     
     generator = Model(inputs, outputs, name="Generator")
     return generator
@@ -209,14 +209,14 @@ def train(g_model, d_model, gan_model, dataset, n_epochs, n_batch):
             # train_on_batch allows you to update weights based on a collection 
             # of samples you provide
             d_loss_real, _ = d_model.train_on_batch([Y_real, Y_real], y_real) #Training clean sources to discriminator.
-            print('d_loss_real', _)
+            #print('d_loss_real', _)
             
             # generate 'fake' examples
             X_fake, y_fake = generate_fake_samples(g_model, X_real, half_batch)
             
             # update discriminator model weights
             d_loss_fake, _ = d_model.train_on_batch([X_fake, Y_real], y_fake)
-            print('d_loss_fake', _)
+            #print('d_loss_fake', _)
             
             d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
             
@@ -237,29 +237,29 @@ def train(g_model, d_model, gan_model, dataset, n_epochs, n_batch):
             g_loss = gan_model.train_on_batch(X_real, y_gan)
             
             # Print losses on this batch
-            print('Epoch:{}, Batch:{}, Batch_per_epo:{}, d1:{}, d2={}, d_avg={}\ng={},{},{}'.format(
-                i+1, j+1, bat_per_epo, d_loss_real, d_loss_fake, d_loss, g_loss[0], g_loss[1], g_loss[2]))
+            print('Epoch:{}, Batch:{}, Batch_per_epo:{}, d1:{}, d2={}, d_avg={}\ng={}'.format(
+                i+1, j+1, bat_per_epo, d_loss_real, d_loss_fake, d_loss, g_loss))
                 
                 
-            print(g_loss)
+            #print(g_loss)
             
             
             # Early stopping check 
             if g_loss < best_g_loss - threshold: 
-            	best_g_loss = g_loss 
-            	patience_counter = 0 
-            	g_model.save('best_generator.keras') 
+                best_g_loss = g_loss 
+                patience_counter = 0 
+                g_model.save('best_generator.keras') 
             else: 
-            	patience_counter += 1 
-            	
+                patience_counter += 1 
+            
             if patience_counter >= patience: 
-            	print(f"Early stopping at epoch {i+1}, batch {j+1}") 
-            	return
+                print(f"Early stopping at epoch {i+1}, batch {j+1}")
+                return
             
                 
             
     # save the generator model
-    g_model.save('cGANIR_.keras')
+    g_model.save('cWGANIR_.keras')
     
     
     
@@ -275,8 +275,8 @@ gan_model = define_gan(g_model, d_model)
 path1 = "/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/CM/XtrainCM3.npy"
 path2 = "/home/anchal/Desktop/rajesh/Clean/Dataset/MUSDBHQ/CM/YtrainCM3.npy"
 
-Xtrain = np.random.random((10, 3, 110240, 1))#np.load(path1)
-Ytrain = np.random.random((10, 3, 110240, 1))#np.load(path2) #
+Xtrain =  np.load(path1)
+Ytrain =  np.load(path2) #np.random.random((10, 3, 110240, 1))
 dataset = np.array([Xtrain, Ytrain])
 
 train(g_model, d_model, gan_model, dataset, n_epochs=100, n_batch=4)
