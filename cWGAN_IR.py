@@ -186,9 +186,9 @@ def generate_fake_samples(generator, XTRAIN, n_samples):
    
 def train(g_model, d_model, gan_model, dataset, n_epochs, n_batch):
     best_g_loss = float('inf')
-    patience = 5
+    patience = 20
     patience_counter = 0
-    threshold = 1e-6
+    threshold = 1e-12
     bat_per_epo = int(dataset[0].shape[0] / n_batch)
     half_batch = int(n_batch / 2)  #the discriminator model is updated for a half batch of real samples 
                                    #and a half batch of fake samples, combined a single batch. 
@@ -208,7 +208,7 @@ def train(g_model, d_model, gan_model, dataset, n_epochs, n_batch):
             # update discriminator model weights
             # train_on_batch allows you to update weights based on a collection 
             # of samples you provide
-            d_loss_real, _ = d_model.train_on_batch([Y_real, Y_real], y_real) #Training clean sources to discriminator.
+            d_loss_real, _ = d_model.train_on_batch([X_real, Y_real], y_real) #Training clean sources to discriminator.
             #print('d_loss_real', _)
             
             # generate 'fake' examples
@@ -243,18 +243,24 @@ def train(g_model, d_model, gan_model, dataset, n_epochs, n_batch):
                 
             #print(g_loss)
             
+            if g_loss < threshold:
+                g_model.save('best_generator_cWGAN.keras')
+                print(f"Early stopping at epoch {i+1}, batch {j+1}")
+                return
             
+            '''
             # Early stopping check 
             if g_loss < best_g_loss - threshold: 
                 best_g_loss = g_loss 
                 patience_counter = 0 
-                g_model.save('best_generator.keras') 
+                g_model.save('best_generator_cWGAN.keras') 
             else: 
                 patience_counter += 1 
             
             if patience_counter >= patience: 
                 print(f"Early stopping at epoch {i+1}, batch {j+1}")
                 return
+            '''
             
                 
             
@@ -279,6 +285,6 @@ Xtrain =  np.load(path1)
 Ytrain =  np.load(path2) #np.random.random((10, 3, 110240, 1))
 dataset = np.array([Xtrain, Ytrain])
 
-train(g_model, d_model, gan_model, dataset, n_epochs=100, n_batch=4)
+train(g_model, d_model, gan_model, dataset, n_epochs=50, n_batch=4)
 
 print("Model trained successfully!")
