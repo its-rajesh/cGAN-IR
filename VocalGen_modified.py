@@ -158,6 +158,7 @@ class GAN(tf.keras.Model):
 
         # Train the generator
         with tf.GradientTape() as tape:
+            self.discriminator.trainable = False # Freeze discriminator in generator training
             fake_output = self.generator(X_train, training=True)
             fake_pred = self.discriminator([X_train, fake_output], training=True)
             g_loss = (self.cross_entropy(tf.ones_like(fake_pred), fake_pred) +
@@ -166,7 +167,10 @@ class GAN(tf.keras.Model):
         grads = tape.gradient(g_loss, self.generator.trainable_variables)
         self.g_optimizer.apply_gradients(zip(grads, self.generator.trainable_variables))
 
+        self.discriminator.trainable = True # Train discriminator in next iteration
+
         total_gan_loss = d_loss + self.theta2 * g_loss
+        
 
         return {"d_loss": d_loss, "g_loss": g_loss, "total_gan_loss": total_gan_loss}
 
@@ -174,8 +178,8 @@ class GAN(tf.keras.Model):
 
 
 # Hyperparameters
-theta1 = 0.1
-theta2 = 0.1
+theta1 = 1.5 #0.1
+theta2 = 1 #0.1
 input_shape = (1025, 208, 1)  # Adjust as necessary
 
 # Create the models
@@ -188,6 +192,13 @@ gan.compile(d_optimizer=Adam(learning_rate=0.0002, beta_1=0.5),
             g_optimizer=Adam(learning_rate=0.0002, beta_1=0.5))
 
 
+class SaveGeneratorCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        if (epoch + 1) % 10 == 0:  # Save every 10 epochs
+            self.model.generator.save(f'/home/anchal/Desktop/rajesh/Clean/cGAN_IR/IndependentModels/models/generator_epoch_{epoch + 1}.h5')
+
+
+
 #################################################
 #################################################
 
@@ -198,8 +209,9 @@ path2 = "/home/anchal/Desktop/rajesh/Clean/cGAN_IR/IndependentModels/YvocalCM3.n
 Xtrain =  np.load(path1)
 Ytrain =  np.load(path2)
 
-epochs = 100
+epochs = 1000
 batch_size = 8
-gan.fit(np.expand_dims(Xtrain, axis=-1), np.expand_dims(Ytrain, axis=-1), epochs=epochs, batch_size=batch_size)
+gan.fit(np.expand_dims(Xtrain, axis=-1), np.expand_dims(Ytrain, axis=-1), epochs=epochs, 
+        batch_size=batch_size, callbacks=[SaveGeneratorCallback()])
 generator.save('generatorvocal_final.h5')
 print("Model trained successfully!")
